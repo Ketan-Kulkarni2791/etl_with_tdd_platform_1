@@ -5,7 +5,7 @@ from etl.extract import extract_from_s3
 
 @mock_s3
 def test_extract_from_s3():
-    s3 = boto3.client("s3", region_name="us-east-1")
+    s3 = boto3.client("s3", region_name="ap-south-1")
     bucket = "test-bucket"
     key = "data.csv"
     s3.create_bucket(Bucket=bucket)
