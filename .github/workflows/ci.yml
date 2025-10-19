@@ -35,7 +35,7 @@ jobs:
 
       - name: Terraform fmt (check)
         working-directory: terraform
-        run: terraform fmt -check
+        run: terraform fmt -diff -check
 
       - name: Terraform init & validate
         working-directory: terraform
