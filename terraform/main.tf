@@ -15,7 +15,7 @@ provider "aws" {
 # S3 bucket for ingest
 resource "aws_s3_bucket" "ingest" {
   bucket = var.s3_bucket_name
-  acl = "private"
+  acl    = "private"
 
   tags = {
     Name = "etl-ingest-bucket"
@@ -24,7 +24,7 @@ resource "aws_s3_bucket" "ingest" {
 
 # IAM role for Lambda
 resource "aws_iam_role" "lambda_role" {
-  name = "${var.project_prefix}-lambda-role"
+  name               = "${var.project_prefix}-lambda-role"
   assume_role_policy = data.aws_iam_policy_document.lambda_assume.json
 }
 
@@ -33,7 +33,7 @@ data "aws_iam_policy_document" "lambda_assume" {
     actions = ["sts:AssumeRole"]
 
     principals {
-      type = "Service"
+      type        = "Service"
       identifiers = ["lambda.amazonaws.com"]
     }
   }
@@ -41,7 +41,7 @@ data "aws_iam_policy_document" "lambda_assume" {
 
 # Attach managed policy for basic lambda logging
 resource "aws_iam_role_policy_attachment" "lambda_basic" {
-  role = aws_iam_role.lambda_role.name
+  role       = aws_iam_role.lambda_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
@@ -53,13 +53,13 @@ resource "aws_iam_policy" "lambda_policy" {
     Version = "2012-10-17"
     Statement = [
       {
-        Action = ["s3:GetObject"]
-        Effect = "Allow"
+        Action   = ["s3:GetObject"]
+        Effect   = "Allow"
         Resource = "${aws_s3_bucket.ingest.arn}/*"
       },
       {
-        Action = ["secretsmanager:GetSecretValue"]
-        Effect = "Allow"
+        Action   = ["secretsmanager:GetSecretValue"]
+        Effect   = "Allow"
         Resource = "*"
       }
     ]
@@ -67,7 +67,7 @@ resource "aws_iam_policy" "lambda_policy" {
 }
 
 resource "aws_iam_role_policy_attachment" "lambda_policy_attach" {
-  role = aws_iam_role.lambda_role.name
+  role       = aws_iam_role.lambda_role.name
   policy_arn = aws_iam_policy.lambda_policy.arn
 }
 
@@ -97,7 +97,7 @@ resource "aws_lambda_function" "etl_func" {
 
 # Basic CloudWatch log group is created automatically by Lambda; add retention
 resource "aws_cloudwatch_log_group" "lambda_logs" {
-  name = "/aws/lambda/${aws_lambda_function.etl_func.function_name}"
+  name              = "/aws/lambda/${aws_lambda_function.etl_func.function_name}"
   retention_in_days = 14
 }
 
@@ -121,7 +121,7 @@ resource "aws_secretsmanager_secret" "db_secret" {
 }
 
 resource "aws_secretsmanager_secret_version" "db_secret_value" {
-  secret_id     = aws_secretsmanager_secret.db_secret.id
+  secret_id = aws_secretsmanager_secret.db_secret.id
   secret_string = jsonencode({
     username = var.db_username
     password = var.db_password
@@ -132,7 +132,7 @@ resource "aws_secretsmanager_secret_version" "db_secret_value" {
 
 # Placeholders for Step Function, etc (example state machine calling the lambda)
 resource "aws_iam_role" "stepfn_role" {
-  name = "${var.project_prefix}-stepfn-role"
+  name               = "${var.project_prefix}-stepfn-role"
   assume_role_policy = data.aws_iam_policy_document.stepfn_assume.json
 }
 
@@ -141,7 +141,7 @@ data "aws_iam_policy_document" "stepfn_assume" {
     actions = ["sts:AssumeRole"]
 
     principals {
-      type = "Service"
+      type        = "Service"
       identifiers = ["states.amazonaws.com"]
     }
   }
@@ -155,8 +155,8 @@ resource "aws_iam_role_policy" "stepfn_policy" {
     Version = "2012-10-17"
     Statement = [
       {
-        Effect = "Allow"
-        Action = ["lambda:InvokeFunction"]
+        Effect   = "Allow"
+        Action   = ["lambda:InvokeFunction"]
         Resource = [aws_lambda_function.etl_func.arn]
       }
     ]
@@ -164,7 +164,7 @@ resource "aws_iam_role_policy" "stepfn_policy" {
 }
 
 resource "aws_sfn_state_machine" "etl_machine" {
-  name = "${var.project_prefix}-etl-machine"
+  name     = "${var.project_prefix}-etl-machine"
   role_arn = aws_iam_role.stepfn_role.arn
 
   definition = jsonencode({

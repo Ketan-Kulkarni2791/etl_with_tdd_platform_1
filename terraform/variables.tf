@@ -9,12 +9,12 @@ variable "project_prefix" {
 }
 
 variable "s3_bucket_name" {
-  type = string
+  type    = string
   default = "etltdd-ingest-bucket-PLACEHOLDER" # change to a unique bucket name
 }
 
 variable "lambda_zip_path" {
-  type = string
+  type    = string
   default = "build/etl_lambda.zip"
 }
 
