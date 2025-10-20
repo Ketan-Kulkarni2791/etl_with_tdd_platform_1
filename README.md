@@ -45,6 +45,36 @@ Quick local setup
    export RUN_INTEGRATION=1
    pytest tests/integration -q
 
+Running tests (Windows PowerShell)
+---------------------------------
+If you're on Windows (PowerShell), use the workspace virtualenv and these commands:
+
+```powershell
+# create venv (if not already created)
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+# install deps
+pip install -r requirements.txt
+# run all tests (unit + integration if enabled)
+& ".\.venv\Scripts\python.exe" -m pytest -q
+```
+
+Enabling integration tests
+--------------------------
+- The integration tests are skipped by default. To enable them set the env var `RUN_INTEGRATION=1`.
+- Integration tests expect `INTEGRATION_DB_URL` to be set to a Postgres connection string, for example:
+
+```powershell
+$env:RUN_INTEGRATION = '1'
+$env:INTEGRATION_DB_URL = 'postgres://user:pass@localhost:5432/testdb'
+& ".\.venv\Scripts\python.exe" -m pytest tests/integration -q
+```
+
+Notes
+-----
+- For Windows PowerShell, use the `Activate.ps1` activation script. On non-Windows shells use the shell-appropriate activation command.
+- The test suite uses `moto` to mock AWS services and `psycopg2-binary` for Postgres integration tests.
+
 Packaging Lambda locally
 ------------------------
 scripts/package_lambda.sh will create `build/etl_lambda.zip` containing handler code and dependencies (for small deployments). For production use, build in a Lambda-compatible environment or use an image-based Lambda.

@@ -9,16 +9,26 @@ def test_load_with_sqlite():
     ensure_table(cur, "t", columns)
     records = [{"a": "1", "b": "2"}, {"a": "3", "b": "4"}]
 
-    # sqlite uses ? placeholders. We'll monkeypatch execute to replace %s with ? for tests.
-    original_execute = cur.execute
+    # sqlite uses ? placeholders. Create a proxy cursor that adapts %s -> ?
+    class ProxyCursor:
+        def __init__(self, real):
+            self._real = real
 
-    def execute_with_adapt(sql, params=None):
-        if params is not None:
+        def execute(self, sql, params=None):
+            if params is not None:
+                sql = sql.replace("%s", "?")
+                return self._real.execute(sql, params)
+            return self._real.execute(sql)
+
+        def executemany(self, sql, seq_of_params):
             adapted_sql = sql.replace("%s", "?")
-            return original_execute(adapted_sql, params)
-        return original_execute(sql)
+            return self._real.executemany(adapted_sql, seq_of_params)
 
-    cur.execute = execute_with_adapt  # type: ignore
+        def __getattr__(self, name):
+            return getattr(self._real, name)
+
+    proxy = ProxyCursor(cur)
+    cur = proxy
     count = load_records(cur, "t", records)
     conn.commit()
     assert count == 2
