@@ -179,14 +179,4 @@ resource "aws_sfn_state_machine" "etl_machine" {
   })
 }
 
-output "lambda_function_name" {
-  value = aws_lambda_function.etl_func.function_name
-}
-
-output "s3_bucket" {
-  value = aws_s3_bucket.ingest.bucket
-}
-
-output "rds_endpoint" {
-  value = aws_db_instance.postgres.address
-}
+// Outputs have been moved to terraform/outputs.tf to avoid duplicate definitions
